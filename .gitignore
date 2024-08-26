@@ -1,0 +1,5 @@
+.venv
+Pipfile.lock
+.env
+client/package-lock.json
+client/node-modules

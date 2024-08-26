@@ -1,0 +1,49 @@
+<h1>Welcome to the Wondeful Theater Production of House of Gnocchi</h1>
+
+<img
+  src="https://www.romeing.it/wp-content/uploads/2017/11/rome-theaters.jpg"
+  alt="inside of a theater"
+/>
+
+<h3>Here is a list of our API endpoints</h3>
+
+-
+<a
+  href="http://localhost:5555/api/v1/productions"
+  rel="noreferrer"
+  target="_blank"
+  >All Productions</a
+>
+<br />
+-
+<a
+  href="http://localhost:5555/api/v1/crew-members"
+  rel="noreferrer"
+  target="_blank"
+  >All Crew Members</a
+>
+<br />
+
+<h5>Productions By ID</h5>
+{% for prod in prods %} -
+<a
+  href="http://localhost:5555/api/v1/productions/{{prod.id}}"
+  rel="noreferrer"
+  target="_blank"
+  >{{prod.title}}</a
+>
+<br />
+{% endfor %}
+
+<br />
+
+<h5>Crew Members By ID</h5>
+{% for crew in crew_members %} -
+<a
+  href="http://localhost:5555/api/v1/crew-members/{{crew.id}}"
+  rel="noreferrer"
+  target="_blank"
+  >{{crew.name}}</a
+>
+<br />
+{% endfor %}
