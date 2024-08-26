@@ -1,29 +1,13 @@
-# REST APIs with Flask (Part 1)
+# Authentication and Authorization using JWT Tokens
 
-## Learning Goals
+- Review JWT tokens, their nature and structure
+- Compare session-based and token-based auth
+- Review flask-jwt-extended
+- Analyze: How will the backend change?
+- Analyze: How do we ensure the user stays logged in once the access token expires
+- Analyze: JWT token location
+- Implement tokens in both headers and cookies
+- Demonstrate cookies token-storage strategy with CSRF token protection
 
-- Discuss the Importance of Authentication in Web Apps
-- Ensure Students Understand the Difference between Identity Management (Authentication) and Access - Management (Authorization)
-- Discuss the Relationship Between Cookies and Sessions
-- Demonstrate Session-Based Authentication (Identity Management) Using Cookies and Sessions
-- Demonstrate Authorization (Access Management)
-- Handle Authorization Errors on the Front End
-
-
-
-## Topics Covered
-
-- Lecture Topics
-- Introduction to APIs
-- Command Line Flask
-- MVC Architecture
-- RESTful Routing Conventions
-- Testing APIs with Postman
-- GET/POST
-- SQLAlchemy-Serializer
-- Serializing Relationships
-- Serializing Associations
-- Cookies and Sessions
-- Password Security
-- Authorization in Flask and React
-- Handling Authorization Errors on the Front End
+## Stretch Goals 
+- Demonstrate localStorage token-storage strategy
