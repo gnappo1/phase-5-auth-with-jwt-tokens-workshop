@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from flask_session import Session
+# from flask_session import Session
 from os import environ
 
 app = Flask(__name__)
@@ -26,4 +26,4 @@ cors = CORS(app)
 # flask-bcrypt configuration
 flask_bcrypt = Bcrypt(app)
 # flask-session configuration
-Session(app)
+# Session(app)
