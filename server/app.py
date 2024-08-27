@@ -14,9 +14,23 @@ from flask import request, g, render_template, make_response, session
 from time import time
 from flask_restful import Resource
 from werkzeug.exceptions import NotFound
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    set_access_cookies,
+    set_refresh_cookies,
+    unset_access_cookies,
+    unset_refresh_cookies,
+    get_jwt,
+    get_jwt_identity,
+    current_user,
+    jwt_required,
+    verify_jwt_in_request
+)
+from jwt.exceptions import ExpiredSignatureError
 
 #! Internal imports
-from app_config import app, api, db
+from app_config import app, api, db, jwt
 from models.production import Production
 from models.crew_member import CrewMember
 from models.user import User
@@ -27,6 +41,7 @@ from routes.production.productions import Productions
 
 #! ==================
 #! GENERAL ROUTE CONCERNS
+
 
 @app.errorhandler(NotFound)
 def not_found(error):
@@ -44,7 +59,6 @@ def before_request():
     #     id = request.view_args.get("id")
     #     crew = db.session.get(CrewMember, id)
     #     g.crew = crew
-
     #! Better Approach
     path_dict = {"productionbyid": Production, "crewmemberbyid": CrewMember}
     if request.endpoint in path_dict:
@@ -60,6 +74,14 @@ def before_request():
 
 #!======================
 #! API ROUTES
+# Register a callback function that loads a user from your database whenever
+# a protected route is accessed. This should return any python object on a
+# successful lookup, or None if the lookup failed for any reason (for example
+# if the user has been deleted from the database).
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return db.session.get(User, identity)
 
 
 @app.route("/")
@@ -69,6 +91,7 @@ def homepage():
     return render_template(
         "homepage.html", prods=productions, crew_members=crew_members
     )
+
 
 @app.route("/api/v1/signup", methods=["POST"])
 def signup():
@@ -81,10 +104,20 @@ def signup():
         db.session.add(user)
         #! commit the session
         db.session.commit()
-        #! now that we have an id, store the id inside the session
-        session["user_id"] = user.id
-        #! return the user
-        return user.to_dict(), 201
+        #! now that we have an id, create tokens for the information we want to store
+        response = make_response(user.to_dict(), 201)
+        access_token = create_access_token(
+            identity=user.id, additional_claims={"role_id": 1}, fresh=True
+        )
+        refresh_token = create_refresh_token(
+            identity=user.id
+        )
+        set_access_cookies(response, access_token)
+        set_refresh_cookies(response, refresh_token)
+        # session["user_id"] = user.id
+        #! return the response
+        return response
+
     except Exception as e:
         db.session.rollback()
         return {"error": str(e)}, 400
@@ -103,32 +136,50 @@ def signin():
         # ).first()
         if user and user.authenticate(data.get("password_hash")):
             #! log the user in
-            session["user_id"] = user.id
-            return user.to_dict(), 200
-        return {"error": "Invalid Credentials"}, 422
+            response = make_response(user.to_dict(), 200)
+            access_token = create_access_token(
+                identity=user.id, additional_claims={"role_id": 1}, fresh=True
+            )
+            refresh_token = create_refresh_token(identity=user.id)
+            set_access_cookies(response, access_token)
+            set_refresh_cookies(response, refresh_token)
+            # session["user_id"] = user.id
+            #! return the response
+            return response
+        return {"error": "Invalid Credentials"}, 401
     except Exception as e:
         return {"error": str(e)}, 400
 
 
 @app.route("/api/v1/signout", methods=["DELETE"])
+@jwt_required(refresh=True)
 def signout():
     try:
-        if "user_id" in session:
-            del session["user_id"]
-        return {}, 204
+        response = make_response({}, 204)
+        unset_access_cookies(response)
+        unset_refresh_cookies(response)
+        #! token invalidation/revocation strategy here
+        return response
     except Exception as e:
         return {"error": str(e)}, 400
 
+
 @app.route("/api/v1/me", methods=["GET"])
+@jwt_required(refresh=True)
 def me():
     try:
-        if "user_id" in session:
-            user = db.session.get(User, session.get("user_id"))
-            return user.to_dict(), 200
-        else:
-            return {"error": "Please Login or Signup"}, 400
+        verify_jwt_in_request()
+        return make_response(current_user.to_dict(), 200)
+    except ExpiredSignatureError as e:
+        access_token = create_access_token(
+            identity=current_user.id, additional_claims={"role_id": 1}, fresh=True
+        )
+        response = make_response(current_user.to_dict(), 200)
+        set_access_cookies(response, access_token)
+        return response
     except Exception as e:
         return {"error": str(e)}, 400
+
 
 api.add_resource(Productions, "/productions")
 api.add_resource(ProductionByID, "/productions/<int:id>")

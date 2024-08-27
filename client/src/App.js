@@ -55,12 +55,18 @@ function App() {
 
   const updateUser = (value) => setCurrentUser(value)
 
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
   return (
     <>
       <GlobalStyle />
       <Header handleEdit={handleEdit} currentUser={currentUser} updateUser={updateUser} />
       <Toaster />
-      <Outlet context={{ currentUser, updateUser, addProduction, updateProduction, deleteProduction, productions, production_edit, handleEdit }} />
+      <Outlet context={{ currentUser, updateUser, addProduction, updateProduction, deleteProduction, productions, production_edit, handleEdit, getCookie }} />
     </>
   )
 }

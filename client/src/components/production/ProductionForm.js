@@ -32,7 +32,7 @@ const initialValues = {
 
 
 function ProductionForm() {
-  const { addProduction } = useOutletContext()
+  const { addProduction, getCookie } = useOutletContext()
 
   const navigate = useNavigate()
 
@@ -52,7 +52,8 @@ function ProductionForm() {
             fetch("/productions", {
               method: "POST",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": getCookie("csrf_access_token")
               },
               body: JSON.stringify(formData)
             })
